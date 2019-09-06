@@ -1,0 +1,11 @@
+{
+  "name": "erasure-contract-wrappers",
+  "version": "1.0.0",
+  "description": "Contract wrappers for Erasure protocol",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^4.0.36",
+    "ipfs-only-hash": "^1.0.2"
+  }
+}
