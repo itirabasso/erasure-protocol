@@ -150,4 +150,52 @@ contract CountdownGriefing is Countdown, Griefing, Metadata, Operated, Template 
     function isCounterparty(address caller) public view returns (bool validity) {
         validity = (caller == _data.counterparty);
     }
+
+    address echidna_caller = 0x00a329C0648769a73afAC7F9381e08fb43DBEA70;
+
+    function echidna_atomicInitialize() public view returns(bool) {
+
+        bool tokenSet = BurnNMR.getToken() != address(0);
+        bool stakerSet = !isStaker(address(0));
+        bool counterpartySet = !isCounterparty(address(0));
+
+        bool operatorSet = !Operated.isOperator(address(0));
+        bool operatorStatusSet = Operated.hasActiveOperator();
+
+        (uint256 ratio, Griefing.RatioType ratioType) = Griefing.getRatio(echidna_caller);
+        bool griefRatioSet = ratio > 0;
+        bool griefRatioTypeSet = uint8(ratioType) > 0;
+
+        (bytes memory staticMetadata, ) = Metadata.getMetadata();
+        bool metadataSet = staticMetadata.length > 0;
+
+        bool countdownLengthSet = Countdown.getLength() > 0;
+
+        bool oneOfStateSet = tokenSet || stakerSet || counterpartySet ||
+            operatorSet || operatorStatusSet || griefRatioSet ||
+            griefRatioTypeSet || countdownLengthSet || metadataSet;
+        bool allStateSet = tokenSet && stakerSet && counterpartySet &&
+            operatorSet && operatorStatusSet && griefRatioSet &&
+            griefRatioTypeSet && countdownLengthSet && metadataSet;
+
+        return oneOfStateSet == allStateSet;
+    }
+
+    function echidna_notOver() public view returns(bool) {
+        if (Deadline.getDeadline() > 0 &&
+            Countdown.getLength() > 0 &&
+            now >= Deadline.getDeadline()) {
+
+            return Countdown.isOver();
+        }
+        return true;
+    }
+
+    function echidna_increaseStakeAfterCountdown() public returns(bool) {
+        uint256 currentStake = Staking.getStake(echidna_caller);
+        increaseStake(currentStake, 100);
+        uint256 newStake = currentStake.add(100);
+        return Staking.getStake(echidna_caller) > newStake;
+    }
+
 }
