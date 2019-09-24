@@ -168,6 +168,10 @@ const deploy = async (network, secret) => {
 
     const contract = await nmr_deployer.deploy(contracts.MockNMR.artifact);
     contracts.MockNMR.instance = await deployer.deploy(contracts.MockNMR.artifact);
+    await contracts.MockNMR.instance.from(multisig).mintMockTokens(
+      multisig,
+      ethers.utils.parseEther('1000'),
+    );
 
 
     // deploy registries
