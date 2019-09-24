@@ -8,6 +8,24 @@ const {
 
 require("dotenv").config();
 
+async function increaseNonce(signer, increaseTo) {
+  const currentNonce = await signer.getTransactionCount();
+  if (currentNonce === increaseTo) {
+    return;
+  }
+  if (currentNonce > increaseTo) {
+    throw new Error(`nonce is greater than desired value ${currentNonce} > ${increaseTo}`);
+  }
+
+  for (let index = 0; index < increaseTo - currentNonce; index++) {
+    const transaction = {
+      to: signer.address, // just send to a random address, it doesn't really matter who
+      value: 0,
+    }
+    await signer.sendTransaction(transaction);
+  }
+}
+
 const deploy = async (network, secret) => {
   let contracts = {
     Erasure_Agreements: {
@@ -27,7 +45,8 @@ const deploy = async (network, secret) => {
     Feed_Factory: { artifact: require("../build/Feed_Factory.json") },
     Feed: { artifact: require("../build/Feed.json") },
     Post_Factory: { artifact: require("../build/Post_Factory.json") },
-    Post: { artifact: require("../build/Post.json") }
+    Post: { artifact: require("../build/Post.json") },
+    MockNMR: { artifact: require('../build/MockNMR.json') },
   };
 
   let tokenAddress;
@@ -136,6 +155,20 @@ const deploy = async (network, secret) => {
     deployer = new etherlime.EtherlimeGanacheDeployer();
     multisig = deployer.signer.address;
     tokenAddress = "0x1776e1F26f98b1A5dF9cD347953a26dd3Cb46671";
+
+    // initialize mockNMR
+    const nmrDeployAddress = "0x9608010323ed882a38ede9211d7691102b4f0ba0";
+
+    await deployer.signer.sendTransaction({ to: nmrDeployAddress, value: ethers.utils.parseEther("1") })
+
+    const nmr_deployer = deployer = new etherlime.EtherlimeGanacheDeployer();
+    nmr_deployer.signer = nmr_deployer.provider.getSigner(nmrDeployAddress);
+
+    await increaseNonce(nmr_deployer.signer, 1);
+
+    const contract = await nmr_deployer.deploy(contracts.MockNMR.artifact);
+    contracts.MockNMR.instance = await deployer.deploy(contracts.MockNMR.artifact);
+
 
     // deploy registries
     contracts.Erasure_Posts.instance = await deployer.deploy(
