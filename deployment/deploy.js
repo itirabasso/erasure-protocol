@@ -161,7 +161,7 @@ const deploy = async (network, secret) => {
 
     await deployer.signer.sendTransaction({ to: nmrDeployAddress, value: ethers.utils.parseEther("1") })
 
-    const nmr_deployer = deployer = new etherlime.EtherlimeGanacheDeployer();
+    const nmr_deployer = new etherlime.EtherlimeGanacheDeployer();
     nmr_deployer.signer = nmr_deployer.provider.getSigner(nmrDeployAddress);
 
     await increaseNonce(nmr_deployer.signer, 1);
