@@ -9,7 +9,6 @@ const {
 
 const { readArtifact } = require("@nomiclabs/buidler/plugins");
 
-
 // TODO : why is this necessary? easier to mock?
 let c = {
   NMR: {
@@ -32,7 +31,6 @@ let c = {
   Feed: {
     factoryArtifact: require("./artifacts/Feed_Factory.json"),
     templateArtifact: require("./artifacts/Feed.json")
-    
   },
   Post: {
     factoryArtifact: require("./artifacts/Post_Factory.json"),
@@ -74,23 +72,29 @@ const nmrDeployAddress = "0x9608010323ed882a38ede9211d7691102b4f0ba0";
 //   });
 // }
 
-task('send-balance', async (args, env) => {
-  const defaultSigner = (await env.ethers.signers())[9];
-  const balance = await defaultSigner.getBalance(defaultSigner.address);
+task("send-balance", async (args, env) => {
+  // const defaultSigner = (await env.ethers.signers())[9];
+  const { from, to } = args;
+  // console.log(from, to)
+  // const defaultSigner = (await env.ethers.signers())[0];
+  const balance = await from.getBalance(from.address);
   const gasPrice = await env.ethers.provider.getGasPrice();
   // TODO : why doesn't work with 21000?
   const gasLimit = 21001;
   // console.log(balance.toString(), balance, gasPrice.toNumber(), balance.sub(gasPrice.mul(gasLimit)));
   const value = balance.sub(gasPrice.mul(gasLimit));
   // console.log('sending ether to nmr signer')
-  await defaultSigner.sendTransaction({
-    to: nmrDeployAddress,
+  // console.log(balance, gasPrice, {
+  //   to: to._address,
+  //   value
+  // });
+  // process.exit(33);
+  await from.sendTransaction({
+    to: to,
     value
   });
   // console.log('ether sent')
-
 });
-
 
 // const sendEthToNMRSigner = async () => {
 //   // empty out the default signer's balance
@@ -120,63 +124,111 @@ task('send-balance', async (args, env) => {
 //   return [contract, receipt];
 // }
 
-internalTask('deploy', async (args, env, runSuper) => {
+internalTask("deploy", async (args, env, runSuper) => {
   // update artifacts
   // await env.run("compile");
-  // console.log('deploy::args', args);
-  const {name,params} = args
+
+  const { name, params } = args;
   const factory = await env.ethers.getContract(name);
   const contract = await factory.deploy(...params);
   // await env.deployments.saveDeployedContract(name, instance);
-  
+
   const receipt = await env.ethers.provider.getTransactionReceipt(
     contract.deployTransaction.hash
   );
-  console.log('Deploy', contract.address, name, receipt.gasUsed.toString());
+  console.log("Deploy", contract.address, name, receipt.gasUsed.toString());
   return [contract, receipt];
 });
 
-
-task('deploy-contract', async (args, env, runSuper) => {
+task("deploy-contract", async (args, env, runSuper) => {
   // TODO : use the artifacts config
   // const name = contractName
-  const {name, params, signer} = args;
-  // console.log('deploy-contract::args', name, params, signer);
+  const { name, params, signer } = args;
   // const artifact = await readArtifact(env.config.paths.artifacts, name);
-  const [contract, receipt] = await run('deploy', {name, params, signer});
+  const [contract, receipt] = await run("deploy", { name, params, signer });
   return [contract, receipt];
 });
 
-task('deploy-factory', async (args, env, runSuper) => {
+task("deploy-factory", async (args, env, runSuper) => {
 
-  // console.log('deploy-factory::args', args);
-  const {artifacts, registry, signer} = args;
-  const {templateArtifact, factoryArtifact}  = artifacts;
-  // console.log(Object.keys(artifacts));
-  
-  const [template, _] = await run('deploy', {
+  const { artifacts, registry, signer } = args;
+  const { templateArtifact, factoryArtifact } = artifacts;
+
+  const [template, _] = await run("deploy", {
     name: templateArtifact.contractName,
     params: [],
     signer: signer
   });
-  
-  const [factory, __] = await run('deploy', {
+
+  const [factory, __] = await run("deploy", {
     name: factoryArtifact.contractName,
     params: [registry.address, template.address],
     signer
   });
   const tx = await registry.addFactory(factory.address, "0x");
   const receipt = await env.ethers.provider.getTransactionReceipt(tx.hash);
-  console.log('addFactory', /*contractName,*/ receipt.gasUsed.toString())
+  console.log("addFactory", /*contractName,*/ receipt.gasUsed.toString());
 
   return [template, factory];
-})
+});
 
-task('deploy-nmr', async (args, env, runSuper) => {
+task("deploy-factories", async (args, { run }, runSuper) => {
+  console.log("Deploy Factories");
 
-  const {deployer} = args;
+  const { deployer } = args;
+
+  [c.SimpleGriefing.template, c.SimpleGriefing.factory] = await run(
+    "deploy-factory",
+    {
+      artifacts: c.SimpleGriefing,
+      registry: c.Erasure_Agreements.registry,
+      signer: deployer
+    }
+  );
+
+  [c.CountdownGriefing.template, c.CountdownGriefing.factory] = await run(
+    "deploy-factory",
+    {
+      artifacts: c.CountdownGriefing,
+      registry: c.Erasure_Agreements.registry,
+      signer: deployer
+    }
+  );
+
+  [c.Post.template, c.Post.factory] = await run("deploy-factory", {
+    artifacts: c.Post,
+    registry: c.Erasure_Posts.registry,
+    signer: deployer
+  });
+
+  [c.Feed.template, c.Feed.factory] = await run("deploy-factory", {
+    artifacts: c.Feed,
+    registry: c.Erasure_Posts.registry,
+    signer: deployer
+  });
+});
+
+task("deploy-registries", async (args, { run }, runSuper) => {
+  console.log("Deploy Registries");
+  const { deployer } = args;
+  [c.Erasure_Posts.registry, _] = await run("deploy-contract", {
+    name: "Erasure_Posts",
+    params: [],
+    signer: deployer
+  });
+  [c.Erasure_Agreements.registry, _] = await run("deploy-contract", {
+    name: "Erasure_Agreements",
+    params: [],
+    signer: deployer
+  });
+});
+
+task("deploy-nmr", async (args, env, runSuper) => {
   console.log("Deploy MockNMR");
-  await run('send-balance', {deployer});
+
+  const { deployer } = args;
+  const from = (await env.ethers.signers())[2];
+  // await run('send-balance', {from, to: deployer});
   // console.log("NMR Signer balance updated");
 
   // TODO : why is this needed?
@@ -184,117 +236,84 @@ task('deploy-nmr', async (args, env, runSuper) => {
   // await deployer.sendTransaction({ to: deployer.address, value: 0 });
 
   // const nmrAddress = "0x1776e1F26f98b1A5dF9cD347953a26dd3Cb46671";
-  console.log("Deploying MockNMR");
-  const [contract, receipt] = await run('deploy-contract', {name: "MockNMR", params: [], signer: deployer});
+
+  [c.NMR.wrap, _] = await run("deploy-contract", {
+    name: "MockNMR",
+    params: [],
+    signer: deployer
+  });
+  console.log("MockNMR deployed");
 
   // console.log(contract.address, nmrAddress);
   // assert.equal(contract.address, nmrAddress);
+});
 
-  return [contract, receipt];
-})
+const initializeFactory = async (contract, params, values, provider) => {
+  console.log("Initializing");
+  const tx = await contract.create(
+    abiEncodeWithSelector("initialize", params, values)
+  );
+  // todo: missing name
+  return provider.getTransactionReceipt(tx.hash);
+};
+
+const getWrapFromTx = (receipt, entity, signer) => {
+  // TODO : does the instance contains the ABI?
+  const interface = new ethers.utils.Interface(entity.factoryArtifact.abi);
+  for (log of receipt.logs) {
+    const event = interface.parseLog(log);
+    if (event !== null && event.name === "InstanceCreated") {
+      return new ethers.Contract(
+        event.values.instance,
+        entity.templateArtifact.abi,
+        signer
+      );
+    }
+  }
+};
 
 task(
   "deploy-full",
   "Deploy the full application",
   async (args, env, runSuper) => {
-
     const signers = await env.ethers.signers();
     const deployer = signers[0];
     const nmrSigner = signers[1];
 
-    
-    [c.NMR.wrap, _] = await run('deploy-nmr', env, nmrSigner);
-
-    console.log("Deploy Registries");
-    [c.Erasure_Posts.registry, _] = await run('deploy-contract', {
-      name:"Erasure_Posts",
-      params: [],
-      signer: deployer
-    });
-    [c.Erasure_Agreements.registry, _] = await run('deploy-contract', {
-      name:"Erasure_Agreements",
-      params: [],
-      signer: deployer
-    });
-    
-    console.log("Deploy Factories");
-
-    [c.SimpleGriefing.template, c.SimpleGriefing.factory] = await run('deploy-factory', {
-      artifacts: c.SimpleGriefing,
-      registry: c.Erasure_Agreements.registry,
-      signer: deployer
-    });
-
-    let ret = await run('deploy-factory', {
-      artifacts: c.CountdownGriefing,
-      registry: c.Erasure_Agreements.registry,
-      signer: deployer
-    });
-    [c.CountdownGriefing.template, c.CountdownGriefing.factory] = ret
-    
-    ret  = await run('deploy-factory', {
-      artifacts: c.Post,
-      registry: c.Erasure_Posts.registry,
-      signer: deployer
-    });
-    [c.Post.template, c.Post.factory] = ret
-
-    [c.Feed.template, c.Feed.factory] = await run('deploy-factory', {
-      artifacts: c.Feed,
-      registry: c.Erasure_Posts.registry,
-      signer: deployer
-    });
-    // [c.Feed.template, c.Feed.factory] =ret
+    await run("deploy-nmr", { deployer: nmrSigner });
+    await run("deploy-registries", { deployer });
+    await run("deploy-factories", { deployer });
 
     console.log("Create Test Instances");
 
     const userAddress = deployer._address;
     const multihash = createMultihashSha256("multihash");
     const hash = ethers.utils.keccak256(hexlify("multihash"));
-    console.log(`userAddress: ${userAddress}`);
-    console.log(`multihash: ${multihash}`);
-    console.log(`hash: ${hash}`);
-    console.log(``);
+
+    console.log("userAddress:", userAddress);
+    console.log("multihash:", multihash);
+    console.log("hash:", hash);
 
     const provider = env.ethers.provider;
 
-    const initializeFactory = async (entity, params, values) => {
-      console.log('Initializing', Object.keys(entity.factory))
-      const tx = await entity.factory.create(
-        abiEncodeWithSelector("initialize", params, values)
-      );
-      console.log('tx', tx)
-      const receipt = await provider.getTransactionReceipt(tx.hash);
-      // TODO : does the instance contains the ABI?
-      const interface = new ethers.utils.Interface(entity.factoryArtifact.abi);
-      console.log(receipt)
-      for (log of receipt.logs) {
-        const event = interface.parseLog(log);
-        if (event !== null && event.name === "InstanceCreated") {
-          instanceAddress = event.values.instance;
-        }
-      }
-      console.log('bleeeeeeeeeeeeep')
-      // TODO : missing name
-      console.log('initialize', receipt.gasUsed.toString(), 'gas', instanceAddress)
-    }
-    initializeFactory(c.Post, ["address", "bytes", "bytes"], [userAddress, multihash, multihash]);
-    initializeFactory(c.Feed, ["address", "bytes", "bytes"], [userAddress, multihash, multihash]);
+    await initializeFactory(
+      c.Post.factory,
+      ["address", "bytes", "bytes"],
+      [userAddress, multihash, multihash],
+      provider
+    );
+    const receipt = await initializeFactory(
+      c.Feed.factory,
+      ["address", "bytes", "bytes"],
+      [userAddress, multihash, multihash],
+      provider
+    );
+    c.Feed.wrap = await getWrapFromTx(receipt, c.Feed, deployer);
 
-    // for (log of feedReceipt.logs) {
-    //   const event = interface.parseLog(log);
-    //   if (event !== null && event.name === "InstanceCreated") {
-    //     c.Feed.wrap = new ethers.Contract(
-    //       event.values.instance,
-    //       c.Feed.template.artifact.abi,
-    //       deploySigner
-    //     );
-    //   }
-    // }
     const submitHash = async (entity, hash) => {
-      const tx = entity.instance.submitHash(hash)
+      const tx = await entity.wrap.submitHash(hash);
       const receipt = await provider.getTransactionReceipt(tx.hash);
-      const interface = new ethers.utils.Interface(entity.templateArtifact);
+      const interface = new ethers.utils.Interface(entity.templateArtifact.abi);
       for (log of receipt.logs) {
         const event = interface.parseLog(log);
         if (event !== null && event.name === "HashSubmitted") {
@@ -303,17 +322,35 @@ task(
         }
         console.log(`submitHash() | ${receipt.gasUsed} gas | Feed`);
       }
-    }
+    };
+    await submitHash(c.Feed, hash);
 
-    initializeFactory(
-      c.SimpleGriefing,
-      ["address", "address", "address", "uint256", "uint8", "bytes"], 
-      [userAddress,userAddress,userAddress,ethers.utils.parseEther("1"),2,"0x0"]
+    await initializeFactory(
+      c.SimpleGriefing.factory,
+      ["address", "address", "address", "uint256", "uint8", "bytes"],
+      [
+        userAddress,
+        userAddress,
+        userAddress,
+        ethers.utils.parseEther("1"),
+        2,
+        "0x0"
+      ],
+      provider
     );
-    initializeFactory(
-      c.CountdownGriefing,
-      ["address", "address", "address", "uint256", "uint8", "uint256", "bytes"], 
-      [userAddress,userAddress,userAddress,ethers.utils.parseEther("1"),2,100000000,"0x0"]
+    await initializeFactory(
+      c.CountdownGriefing.factory,
+      ["address", "address", "address", "uint256", "uint8", "uint256", "bytes"],
+      [
+        userAddress,
+        userAddress,
+        userAddress,
+        ethers.utils.parseEther("1"),
+        2,
+        100000000,
+        "0x0"
+      ],
+      provider
     );
   }
 );
