@@ -22,3 +22,7 @@ coverage-artifacts/
 *.outputParameter
 flat/
 venv/
+
+#Buidler files
+cache
+artifacts
