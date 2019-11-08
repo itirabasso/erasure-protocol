@@ -10,33 +10,33 @@ const {
 const { readArtifact } = require("@nomiclabs/buidler/plugins");
 
 // TODO : why is this necessary? easier to mock?
-let c = {
-  NMR: {
-    artifact: require("./artifacts/MockNMR.json")
-  },
-  Erasure_Agreements: {
-    artifact: require("./artifacts/Erasure_Agreements.json")
-  },
-  Erasure_Posts: {
-    artifact: require("./artifacts/Erasure_Posts.json")
-  },
-  SimpleGriefing: {
-    factoryArtifact: require("./artifacts/SimpleGriefing_Factory.json"),
-    templateArtifact: require("./artifacts/SimpleGriefing.json")
-  },
-  CountdownGriefing: {
-    factoryArtifact: require("./artifacts/CountdownGriefing_Factory.json"),
-    templateArtifact: require("./artifacts/CountdownGriefing.json")
-  },
-  Feed: {
-    factoryArtifact: require("./artifacts/Feed_Factory.json"),
-    templateArtifact: require("./artifacts/Feed.json")
-  },
-  Post: {
-    factoryArtifact: require("./artifacts/Post_Factory.json"),
-    templateArtifact: require("./artifacts/Post.json")
-  }
-};
+// const c = {
+//   NMR: {
+//     artifact: require("./artifacts/MockNMR.json")
+//   },
+//   Erasure_Agreements: {
+//     artifact: require("./artifacts/Erasure_Agreements.json")
+//   },
+//   Erasure_Posts: {
+//     artifact: require("./artifacts/Erasure_Posts.json")
+//   },
+//   SimpleGriefing: {
+//     factoryArtifact: require("./artifacts/SimpleGriefing_Factory.json"),
+//     templateArtifact: require("./artifacts/SimpleGriefing.json")
+//   },
+//   CountdownGriefing: {
+//     factoryArtifact: require("./artifacts/CountdownGriefing_Factory.json"),
+//     templateArtifact: require("./artifacts/CountdownGriefing.json")
+//   },
+//   Feed: {
+//     factoryArtifact: require("./artifacts/Feed_Factory.json"),
+//     templateArtifact: require("./artifacts/Feed.json")
+//   },
+//   Post: {
+//     factoryArtifact: require("./artifacts/Post_Factory.json"),
+//     templateArtifact: require("./artifacts/Post.json")
+//   }
+// };
 
 // TODO : where should i use this mnemonic?
 // let ganacheConfig = {
@@ -96,34 +96,6 @@ task("send-balance", async (args, env) => {
   // console.log('ether sent')
 });
 
-// const sendEthToNMRSigner = async () => {
-//   // empty out the default signer's balance
-//   // and send to nmr signer
-//   const defaultSigner = provider.getSigner(9);
-//   const balance = await defaultSigner.getBalance(defaultSigner.address);
-//   const gasPrice = await provider.getGasPrice();
-//   const gasLimit = 21000;
-//   const value = balance.sub(gasPrice.mul(gasLimit));
-
-//   await defaultSigner.sendTransaction({
-//     to: nmrDeployAddress,
-//     value
-//   });
-// };
-
-// async function deployer(artifact, params, signer) {
-//   const factory = new ethers.ContractFactory(
-//     artifact.compilerOutput.abi,
-//     artifact.compilerOutput.evm.bytecode.object,
-//     signer
-//   );
-//   const contract = await factory.deploy(...params);
-//   const receipt = await provider.getTransactionReceipt(
-//     contract.deployTransaction.hash
-//   );
-//   return [contract, receipt];
-// }
-
 internalTask("deploy", async (args, env, runSuper) => {
   // update artifacts
   // await env.run("compile");
@@ -145,12 +117,11 @@ task("deploy-contract", async (args, env, runSuper) => {
   // const name = contractName
   const { name, params, signer } = args;
   // const artifact = await readArtifact(env.config.paths.artifacts, name);
-  const [contract, receipt] = await run("deploy", { name, params, signer });
-  return [contract, receipt];
+  const [contract, _] = await run("deploy", { name, params, signer });
+  return contract;
 });
 
 task("deploy-factory", async (args, env, runSuper) => {
-
   const { artifacts, registry, signer } = args;
   const { templateArtifact, factoryArtifact } = artifacts;
 
@@ -211,18 +182,21 @@ task("deploy-factories", async (args, { run }, runSuper) => {
 task("deploy-registries", async (args, { run }, runSuper) => {
   console.log("Deploy Registries");
   const { deployer } = args;
-  [c.Erasure_Posts.registry, _] = await run("deploy-contract", {
+
+  c.Erasure_Posts.registry = await run("deploy-contract", {
     name: "Erasure_Posts",
     params: [],
     signer: deployer
   });
-  [c.Erasure_Agreements.registry, _] = await run("deploy-contract", {
+
+  c.Erasure_Agreements.registry = await run("deploy-contract", {
     name: "Erasure_Agreements",
     params: [],
     signer: deployer
   });
 });
 
+// TODO : is the sending balance thing really necessary?
 task("deploy-nmr", async (args, env, runSuper) => {
   console.log("Deploy MockNMR");
 
@@ -237,25 +211,25 @@ task("deploy-nmr", async (args, env, runSuper) => {
 
   // const nmrAddress = "0x1776e1F26f98b1A5dF9cD347953a26dd3Cb46671";
 
-  [c.NMR.wrap, _] = await run("deploy-contract", {
+  return run("deploy-contract", {
     name: "MockNMR",
     params: [],
     signer: deployer
   });
-  console.log("MockNMR deployed");
-
-  // console.log(contract.address, nmrAddress);
-  // assert.equal(contract.address, nmrAddress);
 });
 
-const initializeFactory = async (contract, params, values, provider) => {
-  console.log("Initializing");
-  const tx = await contract.create(
-    abiEncodeWithSelector("initialize", params, values)
-  );
-  // todo: missing name
-  return provider.getTransactionReceipt(tx.hash);
-};
+task(
+  "create-instance",
+  "Creates a new instance from a factory",
+  async (args, env, runSuper) => {
+    const { factory, params, values, provider } = args;
+    const tx = await factory.create(
+      abiEncodeWithSelector("initialize", params, values)
+    );
+    // todo: missing name
+    return env.ethers.provider.getTransactionReceipt(tx.hash);
+  }
+);
 
 const getWrapFromTx = (receipt, entity, signer) => {
   // TODO : does the instance contains the ABI?
@@ -284,6 +258,7 @@ task(
     await run("deploy-registries", { deployer });
     await run("deploy-factories", { deployer });
 
+    // TODO: move this somewhere else
     console.log("Create Test Instances");
 
     const userAddress = deployer._address;
@@ -294,25 +269,22 @@ task(
     console.log("multihash:", multihash);
     console.log("hash:", hash);
 
-    const provider = env.ethers.provider;
+    await run("create-instance", {
+      factory: c.Post.factory,
+      params: ["address", "bytes", "bytes"],
+      values: [userAddress, multihash, multihash]
+    });
 
-    await initializeFactory(
-      c.Post.factory,
-      ["address", "bytes", "bytes"],
-      [userAddress, multihash, multihash],
-      provider
-    );
-    const receipt = await initializeFactory(
-      c.Feed.factory,
-      ["address", "bytes", "bytes"],
-      [userAddress, multihash, multihash],
-      provider
-    );
+    const receipt = await run("create-instance", {
+      factory: c.Feed.factory,
+      params: ["address", "bytes", "bytes"],
+      values: [userAddress, multihash, multihash]
+    });
     c.Feed.wrap = await getWrapFromTx(receipt, c.Feed, deployer);
 
     const submitHash = async (entity, hash) => {
       const tx = await entity.wrap.submitHash(hash);
-      const receipt = await provider.getTransactionReceipt(tx.hash);
+      const receipt = await env.ethers.provider.getTransactionReceipt(tx.hash);
       const interface = new ethers.utils.Interface(entity.templateArtifact.abi);
       for (log of receipt.logs) {
         const event = interface.parseLog(log);
@@ -325,23 +297,31 @@ task(
     };
     await submitHash(c.Feed, hash);
 
-    await initializeFactory(
-      c.SimpleGriefing.factory,
-      ["address", "address", "address", "uint256", "uint8", "bytes"],
-      [
+    await run("create-instance", {
+      factory: c.SimpleGriefing.factory,
+      params: ["address", "address", "address", "uint256", "uint8", "bytes"],
+      values: [
         userAddress,
         userAddress,
         userAddress,
         ethers.utils.parseEther("1"),
         2,
         "0x0"
+      ]
+    });
+
+    await run("create-instance", {
+      factory: c.CountdownGriefing.factory,
+      params: [
+        "address",
+        "address",
+        "address",
+        "uint256",
+        "uint8",
+        "uint256",
+        "bytes"
       ],
-      provider
-    );
-    await initializeFactory(
-      c.CountdownGriefing.factory,
-      ["address", "address", "address", "uint256", "uint8", "uint256", "bytes"],
-      [
+      values: [
         userAddress,
         userAddress,
         userAddress,
@@ -349,31 +329,7 @@ task(
         2,
         100000000,
         "0x0"
-      ],
-      provider
-    );
+      ]
+    });
   }
 );
-
-const main = async () => {
-  process.on("unhandledRejection", function(error) {
-    console.error(error);
-    process.exit(1);
-  });
-  console.log("maaaain");
-  if (args.exit_on_success) process.exit(0);
-};
-
-// var ArgumentParser = require("argparse").ArgumentParser;
-// var parser = new ArgumentParser({
-//   version: "0.0.1",
-//   addHelp: true,
-//   description: "Argparse example"
-// });
-// parser.addArgument(["-e", "--exit-on-success"], {
-//   help: "foo bar",
-//   action: "storeTrue"
-// });
-// var args = parser.parseArgs();
-
-// main(args);

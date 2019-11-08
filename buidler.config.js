@@ -68,16 +68,19 @@ module.exports = {
           balance: "0x90000000000000000000000000000000"
         }
       ]
+    },
+    develop: {
+      url: 'http://127.0.0.1:8545'
     }
   },
   paths: {
     artifacts: "./packages/testenv/artifacts/",
-    sources: "./contracts"
+    sources: "./contracts/"
+  },
+  solc: {
+    version: "0.5.11",
+    contracts: "*",
+    optimizer: { enabled: false, runs: 200 },
+    evmVersion: "constantinople"
   }
 };
-
-// gasPrice: "0x77359400",
-// gasLimit: "0x6691b7"
-
-191408831393027885698148216688369618944
-191408831393027885698148216680369618944
