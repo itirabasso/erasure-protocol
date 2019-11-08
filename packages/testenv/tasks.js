@@ -9,6 +9,37 @@ const {
 
 const { readArtifact } = require("@nomiclabs/buidler/plugins");
 
+const defaultDeploySetup = {
+  registries: {
+    Erasure_Agreements: {},
+    Erasure_Posts: {}
+  },
+  factories: {
+    SimpleGriefing: {
+      factory: "SimpleGriefing_Factory",
+      template: "SimpleGriefing",
+      registry: "Erasure_Agreements"
+    },
+    CountdownGriefing: {
+      factory: "CountdownGriefing_Factory",
+      template: "CountdownGriefing",
+      registry: "Erasure_Agreements"
+    },
+    Feed: {
+      factory: "Feed_Factory",
+      template: "Feed",
+      registry: "Erasure_Posts"
+    },
+    Post: {
+      factory: "Post_Factory",
+      template: "Post",
+      registry: "Erasure_Posts"
+    }
+  }
+};
+
+const setup = {};
+
 // TODO : why is this necessary? easier to mock?
 // const c = {
 //   NMR: {
@@ -101,8 +132,8 @@ internalTask("deploy", async (args, env, runSuper) => {
   // await env.run("compile");
 
   const { name, params } = args;
-  const factory = await env.ethers.getContract(name);
-  const contract = await factory.deploy(...params);
+  const contractFactory = await env.ethers.getContract(name);
+  const contract = await contractFactory.deploy(...params);
   // await env.deployments.saveDeployedContract(name, instance);
 
   const receipt = await env.ethers.provider.getTransactionReceipt(
@@ -122,79 +153,101 @@ task("deploy-contract", async (args, env, runSuper) => {
 });
 
 task("deploy-factory", async (args, env, runSuper) => {
-  const { artifacts, registry, signer } = args;
-  const { templateArtifact, factoryArtifact } = artifacts;
-
-  const [template, _] = await run("deploy", {
-    name: templateArtifact.contractName,
+  const { factory, template, registry, signer } = args;
+  // const { templateArtifact, factoryArtifact } = artifacts;
+  
+  console.log('deploying template', factory, registry )
+  const [t, _] = await run("deploy", {
+    name: factory,
     params: [],
     signer: signer
   });
-
-  const [factory, __] = await run("deploy", {
-    name: factoryArtifact.contractName,
+  
+  console.log('deploying factory', factory, registry )
+  const [f, __] = await run("deploy", {
+    name: template,
     params: [registry.address, template.address],
     signer
   });
   const tx = await registry.addFactory(factory.address, "0x");
-  const receipt = await env.ethers.provider.getTransactionReceipt(tx.hash);
-  console.log("addFactory", /*contractName,*/ receipt.gasUsed.toString());
+  // const receipt = await env.ethers.provider.getTransactionReceipt(tx.hash);
+  // console.log("addFactory", /*contractName,*/ receipt.gasUsed.toString());
 
-  return [template, factory];
+  return [t, f];
 });
 
 task("deploy-factories", async (args, { run }, runSuper) => {
   console.log("Deploy Factories");
 
-  const { deployer } = args;
+  const { deployer, factories } = args;
 
-  [c.SimpleGriefing.template, c.SimpleGriefing.factory] = await run(
-    "deploy-factory",
-    {
-      artifacts: c.SimpleGriefing,
-      registry: c.Erasure_Agreements.registry,
-      signer: deployer
-    }
+  const fs = await Promise.all(
+    Object.entries(factories).map(([name, f]) =>
+      run("deploy-factory", { ...f, signer: deployer })
+    )
   );
 
-  [c.CountdownGriefing.template, c.CountdownGriefing.factory] = await run(
-    "deploy-factory",
-    {
-      artifacts: c.CountdownGriefing,
-      registry: c.Erasure_Agreements.registry,
-      signer: deployer
-    }
-  );
+  // [c.SimpleGriefing.template, c.SimpleGriefing.factory] = await run(
+  //   "deploy-factory",
+  //   {
+  //     artifacts: c.SimpleGriefing,
+  //     registry: c.Erasure_Agreements.registry,
+  //     signer: deployer
+  //   }
+  // );
 
-  [c.Post.template, c.Post.factory] = await run("deploy-factory", {
-    artifacts: c.Post,
-    registry: c.Erasure_Posts.registry,
-    signer: deployer
-  });
+  // [c.CountdownGriefing.template, c.CountdownGriefing.factory] = await run(
+  //   "deploy-factory",
+  //   {
+  //     artifacts: c.CountdownGriefing,
+  //     registry: c.Erasure_Agreements.registry,
+  //     signer: deployer
+  //   }
+  // );
 
-  [c.Feed.template, c.Feed.factory] = await run("deploy-factory", {
-    artifacts: c.Feed,
-    registry: c.Erasure_Posts.registry,
-    signer: deployer
-  });
+  // [c.Post.template, c.Post.factory] = await run("deploy-factory", {
+  //   artifacts: c.Post,
+  //   registry: c.Erasure_Posts.registry,
+  //   signer: deployer
+  // });
+
+  // [c.Feed.template, c.Feed.factory] = await run("deploy-factory", {
+  //   artifacts: c.Feed,
+  //   registry: c.Erasure_Posts.registry,
+  //   signer: deployer
+  // });
 });
+// .addParam(
+//   "factories",
+//   "List of factories name to deploy (separated by comma)"
+// );
 
 task("deploy-registries", async (args, { run }, runSuper) => {
   console.log("Deploy Registries");
-  const { deployer } = args;
+  const { deployer, registries } = args;
 
-  c.Erasure_Posts.registry = await run("deploy-contract", {
-    name: "Erasure_Posts",
-    params: [],
-    signer: deployer
-  });
+  const rs = await Promise.all(
+    Object.entries(registries).map(([name, r]) =>
+      run("deploy-contract", { name, params: [], signer: deployer })
+    )
+  );
 
-  c.Erasure_Agreements.registry = await run("deploy-contract", {
-    name: "Erasure_Agreements",
-    params: [],
-    signer: deployer
-  });
+  // c.Erasure_Posts.registry = await run("deploy-contract", {
+  //   name: "Erasure_Posts",
+  //   params: [],
+  //   signer: deployer
+  // });
+
+  // c.Erasure_Agreements.registry = await run("deploy-contract", {
+  //   name: "Erasure_Agreements",
+  //   params: [],
+  //   signer: deployer
+  // });
 });
+// .addParam(
+//   "registries",
+//   "List of registries name to deploy (separated by comma)"
+// );
 
 // TODO : is the sending balance thing really necessary?
 task("deploy-nmr", async (args, env, runSuper) => {
@@ -254,9 +307,10 @@ task(
     const deployer = signers[0];
     const nmrSigner = signers[1];
 
+    const setup = defaultDeploySetup;
     await run("deploy-nmr", { deployer: nmrSigner });
-    await run("deploy-registries", { deployer });
-    await run("deploy-factories", { deployer });
+    await run("deploy-registries", { deployer, registries: setup.registries });
+    await run("deploy-factories", { deployer, factories: setup.factories });
 
     // TODO: move this somewhere else
     console.log("Create Test Instances");
