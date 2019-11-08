@@ -16,10 +16,6 @@
   },
   "dependencies": {
     "@0x/sol-compiler": "^3.1.15",
-    "@nomiclabs/buidler": "^1.0.1",
-    "@nomiclabs/buidler-ethers": "^1.0.1",
-    "@nomiclabs/buidler-truffle5": "^1.0.1",
-    "@nomiclabs/buidler-web3": "^1.0.1",
     "coveralls": "^3.0.5",
     "dotenv": "^8.0.0",
     "etherlime": "2.2.0",
@@ -29,8 +25,15 @@
     "web3": "^1.2.2"
   },
   "devDependencies": {
+    "@nomiclabs/buidler": "^1.0.1",
+    "@nomiclabs/buidler-ethers": "^1.0.1",
+    "@nomiclabs/buidler-truffle5": "^1.0.1",
+    "@nomiclabs/buidler-web3": "^1.0.1",
     "@typescript-eslint/eslint-plugin": "^2.6.1",
     "@typescript-eslint/parser": "^2.6.1",
-    "eslint": "^6.6.0"
+    "eslint": "^6.6.0",
+    "ethers": "^4.0.32",
+    "ganache-cli": "6.5.1",
+    "web3": "^1.2.2"
   }
 }
