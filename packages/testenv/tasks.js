@@ -156,7 +156,7 @@ task("deploy-factory", async (args, env, runSuper) => {
   const { factory, template, registry, signer } = args;
   // const { templateArtifact, factoryArtifact } = artifacts;
   
-  console.log('deploying template', factory, registry )
+  console.log('deploying factory',  )
   const [t, _] = await run("deploy", {
     name: factory,
     params: [],

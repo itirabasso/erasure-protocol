@@ -9,7 +9,7 @@ const CountdownGriefingArtifact = require("../../build/CountdownGriefing.json");
 const CountdownGriefingFactoryArtifact = require("../../build/CountdownGriefing_Factory.json");
 const AgreementsRegistryArtifact = require("../../build/Erasure_Agreements.json");
 const MockNMRArtifact = require("../../build/MockNMR.json");
-/*
+
 describe.skip("CountdownGriefing", async function() {
   // wallets and addresses
   // const [
@@ -61,10 +61,10 @@ describe.skip("CountdownGriefing", async function() {
   // helper function to deploy TestCountdownGriefing
   const deployAgreement = async (args = initArgs) => {
     // console.log('Deploy agreement with ')
-    // console.log(Object.keys(global.erasure))
+    console.log(Object.keys(global.erasure))
     const agreement = await erasure.createAgreement.apply(undefined, args);
 
-    // console.log('agreement signer:', agreement.signer)
+    console.log('agreement signer:', agreement.signer)
     return agreement;
     // const callData = abiEncodeWithSelector("initialize", createABITypes, args);
     // const txn = await this.Factory.from(operator).create(callData);
@@ -87,7 +87,7 @@ describe.skip("CountdownGriefing", async function() {
 
   const deployDeactivatedAgreement = async () => {
     const agreement = await deployAgreement();
-    console.log(Object.keys(agreement), operator)
+    // console.log(Object.keys(agreement), operator)
     agreement.connect(operator);
     await agreement.renounceOperator();
     // process.exit(33);
@@ -913,5 +913,3 @@ describe.skip("CountdownGriefing", async function() {
     });
   });
 });
-
-*/

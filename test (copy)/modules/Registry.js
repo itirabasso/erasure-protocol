@@ -2,8 +2,8 @@ const ethers = require("ethers");
 const { createDeployer } = require("../helpers/setup");
 const { hexlify } = require("../helpers/utils");
 const RegistryArtifact = require("../../build/Registry.json");
-
-describe("Registry", function () {
+const env = require("@nomiclabs/buidler");
+describe.skip("Registry", async function () {
 
   const instanceType = "TestRegistry";
   const factoryExtraData = "FACTORY_EXTRA_DATA";
@@ -15,10 +15,14 @@ describe("Registry", function () {
   };
 
   // wallets and addresses
-  let [ownerWallet, buyerWallet, sellerWallet] = accounts;
-  let owner = ownerWallet.signer.signingKey.address; // normalize address
-  const buyer = buyerWallet.signer.signingKey.address; // normalize address
-  const seller = sellerWallet.signer.signingKey.address; // normalize address
+  let [ownerSigner, buyerSigner, sellerSigner] = await env.ethers.signers();
+  let owner = await ownerSigner.getAddress()
+  const buyer = await buyerSigner.getAddress()
+  const seller = await sellerSigner.getAddress()
+
+  // let owner = ownerWallet.signer.signingKey.address; // normalize address
+  // const buyer = buyerWallet.signer.signingKey.address; // normalize address
+  // const seller = sellerWallet.signer.signingKey.address; // normalize address
   // nonce used to generate random address
   let factoryNonce = 0;
 

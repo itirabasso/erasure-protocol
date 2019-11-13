@@ -1,12 +1,8 @@
 const { initDeployment } = require("../helpers/setup");
+const env = require("@nomiclabs/buidler")
+describe.skip("Staking", async function () {
 
-describe("Staking", function () {
-
-  let wallets = {
-    numerai: accounts[0],
-    seller: accounts[1],
-    buyer: accounts[2]
-  };
+  const wallet = {};
 
   let contracts = {
     TestStaking: {
@@ -16,9 +12,15 @@ describe("Staking", function () {
       artifact: require("../../build/MockNMR.json")
     }
   };
+  // const signers = await env.ethers.signers();
 
   let deployer;
   before(async () => {
+    const signers = await env.ethers.signers();
+
+    console.log('signers:', signers);
+    [wallet.numerai, wallet.seller, wallet.buyer] = signers;
+
     [this.deployer, this.MockNMR] = await initDeployment();
     deployer = this.deployer;
   });
@@ -29,10 +31,12 @@ describe("Staking", function () {
     );
   });
 
-  describe("Staking._addStake", () => {
+  describe("Staking._addStake", async () => {
+    [wallet.numerai, wallet.seller, wallet.buyer] = await env.ethers.signers();
+
     // funder has funds to fund for the staker's stake
-    const staker = wallets.seller.signer.signingKey.address;
-    const funder = wallets.numerai.signer.signingKey.address;
+    const staker = await wallet.seller.getAddress();
+    const funder = await wallet.numerai.getAddress();
 
     it("should fail when no allowance", async () => {
       await assert.revertWith(
@@ -128,9 +132,11 @@ describe("Staking", function () {
     });
   });
 
-  describe("Staking._takeStake", () => {
-    const staker = wallets.seller.signer.signingKey.address;
-    const recipient = wallets.numerai.signer.signingKey.address;
+  describe("Staking._takeStake", async () => {
+    [wallet.numerai, wallet.seller, wallet.buyer] = await env.ethers.signers();
+
+    const staker = await wallet.seller.getAddress();
+    const recipient = await wallet.numerai.getAddress();
 
     it("should fail when currentStake is wrong", async () => {
       const amountStaked = 10;
@@ -284,10 +290,12 @@ describe("Staking", function () {
     });
   });
 
-  describe("Staking._takeFullStake", () => {
+  describe("Staking._takeFullStake", async () => {
+    [wallet.numerai, wallet.seller, wallet.buyer] = await env.ethers.signers();
+
     // funder has funds to fund for the staker's stake
-    const staker = wallets.seller.signer.signingKey.address;
-    const recipient = wallets.numerai.signer.signingKey.address;
+    const staker = await wallet.seller.getAddress();
+    const recipient = await wallet.numerai.getAddress();
 
     it("should takeFullStake successfully", async () => {
       const stakingAddress = contracts.TestStaking.instance.contractAddress;
@@ -353,10 +361,11 @@ describe("Staking", function () {
     });
   });
 
-  describe("Staking._burnStake", () => {
-    const staker = wallets.seller.signer.signingKey.address;
-    const funder = wallets.numerai.signer.signingKey.address;
+  describe("Staking._burnStake", async () => {
+    [wallet.numerai, wallet.seller, wallet.buyer] = await env.ethers.signers();
 
+    const staker = await wallet.seller.getAddress();
+    const funder = await wallet.numerai.getAddress();
     it("should fail when currentStake is wrong", async () => {
       const amountBurnt = 10;
       const stakingAddress = contracts.TestStaking.instance.contractAddress;
@@ -486,9 +495,11 @@ describe("Staking", function () {
     });
   });
 
-  describe("Staking._burnFullStake", () => {
-    const staker = wallets.seller.signer.signingKey.address;
-    const funder = wallets.numerai.signer.signingKey.address;
+  describe("Staking._burnFullStake", async () => {
+    [wallet.numerai, wallet.seller, wallet.buyer] = await env.ethers.signers();
+
+    const staker = await wallet.seller.getAddress();
+    const funder = await wallet.numerai.getAddress();
 
     it("should burnFullStake successfully", async () => {
       const stakingAddress = contracts.TestStaking.instance.contractAddress;

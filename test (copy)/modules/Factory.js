@@ -27,7 +27,8 @@ function testFactory(
   describe(factoryName, function () {
 
     // wallets and addresses
-    const [operatorWallet, , creatorWallet] = accounts;
+    console.log('eeenvvv', env, ethers, erasure);
+    const [operatorWallet, , creatorWallet] = env;
     const operator = operatorWallet.signer.signingKey.address;
     const creator = creatorWallet.signer.signingKey.address;
 

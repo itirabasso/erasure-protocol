@@ -1,7 +1,6 @@
-// usePlugin("@nomiclabs/buidler-truffle5");
+usePlugin("@nomiclabs/buidler-truffle5");
 usePlugin("@nomiclabs/buidler-ethers");
-
-require("./packages/testenv/tasks");
+usePlugin("buidler-erasure");
 
 // This is a sample Buidler task. To learn how to create your own go to
 // https://buidler.dev/guides/create-task.html
@@ -70,12 +69,13 @@ module.exports = {
       ]
     },
     develop: {
-      url: 'http://127.0.0.1:8545'
+      url: "http://127.0.0.1:8545"
     }
   },
   paths: {
     artifacts: "./packages/testenv/artifacts/",
-    sources: "./contracts/"
+    sources: "./contracts/",
+    tests: "./test"
   },
   solc: {
     version: "0.5.11",

@@ -1,3 +1,6 @@
+const ethers = require("ethers");
+const env = require("@nomiclabs/buidler")
+
 const { createDeployer, initDeployment } = require("../helpers/setup");
 const { RATIO_TYPES } = require("../helpers/variables");
 const { abiEncodeWithSelector } = require("../helpers/utils");
@@ -7,18 +10,10 @@ const SimpleGriefingFactoryArtifact = require("../../build/SimpleGriefing_Factor
 const AgreementsRegistryArtifact = require("../../build/Erasure_Agreements.json");
 const MockNMRArtifact = require("../../build/MockNMR.json");
 
-describe("SimpleGriefing", function() {
+describe.skip("SimpleGriefing", async function() {
   // wallets and addresses
-  const [
-    operatorWallet,
-    counterpartyWallet,
-    stakerWallet,
-    newOperatorWallet
-  ] = accounts;
-  const operator = operatorWallet.signer.signingKey.address;
-  const counterparty = counterpartyWallet.signer.signingKey.address;
-  const staker = stakerWallet.signer.signingKey.address;
-  const newOperator = newOperatorWallet.signer.signingKey.address;
+  const [operator, staker, counterparty, newOperator] = await env.ethers.signers()
+
 
   // variables used in initialize()
   const stakerStake = ethers.utils.parseEther("200");
@@ -39,9 +34,9 @@ describe("SimpleGriefing", function() {
   ];
 
   const initArgs = [
-    operator,
-    staker,
-    counterparty,
+    await operator.getAddress(),
+    await staker.getAddress(),
+    await counterparty.getAddress(),
     ratioE18,
     ratioType,
     Buffer.from(staticMetadata)

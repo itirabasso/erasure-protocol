@@ -1,12 +1,6 @@
 const { createDeployer } = require("../helpers/setup");
 
-describe("Countdown", function() {
-  let wallets = {
-    numerai: accounts[0],
-    seller: accounts[1],
-    buyer: accounts[2]
-  };
-
+describe.skip("Countdown", function() {
   let contracts = {
     TestCountdown: {
       artifact: require("../../build/TestCountdown.json")

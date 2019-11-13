@@ -3,7 +3,7 @@ const { createDeployer } = require("../helpers/setup");
 const { hexlify } = require("../helpers/utils");
 const ErasureUsersArtifact = require("../../build/Erasure_Users.json");
 
-describe("Erasure_Users", function() {
+describe.skip("Erasure_Users", function() {
   let deployer;
   const users = [];
   const userDatas = {};

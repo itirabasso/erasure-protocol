@@ -1,3 +1,5 @@
+const env = require("@nomiclabs/buidler");
+const ethers = require("ethers");
 // require artifacts
 const PostFactoryArtifact = require("../../build/Post_Factory.json");
 const PostArtifact = require("../../build/Post.json");
@@ -8,9 +10,6 @@ const ErasurePostsRegistryArtifact = require("../../build/Erasure_Posts.json");
 const { createDeployer } = require("../helpers/setup");
 const { createMultihashSha256 } = require("../helpers/utils");
 const testFactory = require("../modules/Factory");
-
-const [, , creatorWallet] = accounts;
-const creator = creatorWallet.signer.signingKey.address;
 
 // variables used in initialize()
 const factoryName = "Post_Factory";
@@ -23,35 +22,31 @@ const variableMetadata = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes("variableMetadata")
 );
 
-const createTypes = ["address", "bytes", "bytes"];
-const createArgs = [creator, proofHash, staticMetadata];
-
 let PostTemplate;
 let deployer;
 
-before(async () => {
-  deployer = createDeployer();
-  PostTemplate = await deployer.deploy(PostArtifact);
-});
+// const deployer = createDeployer();
 
-function runFactoryTest() {
-  // const deployer = createDeployer();
+describe.skip(factoryName, async () => {
+  const [, , creator] = await env.ethers.signers();
+  const createTypes = ["address", "bytes", "bytes"];
+  const createArgs = [await creator.getAddress(), proofHash, staticMetadata];
 
-  describe(factoryName, () => {
-    it("setups test", () => {
-      testFactory(
-        deployer,
-        factoryName,
-        instanceType,
-        createTypes,
-        createArgs,
-        PostFactoryArtifact,
-        ErasurePostsRegistryArtifact,
-        ErasureAgreementsRegistryArtifact,
-        [PostTemplate.contractAddress]
-      );
-    });
+  before(async () => {
+    deployer = createDeployer();
+    PostTemplate = await deployer.deploy(PostArtifact);
   });
-}
-
-runFactoryTest();
+  it("setups test", () => {
+    testFactory(
+      deployer,
+      factoryName,
+      instanceType,
+      createTypes,
+      createArgs,
+      PostFactoryArtifact,
+      ErasurePostsRegistryArtifact,
+      ErasureAgreementsRegistryArtifact,
+      [PostTemplate.contractAddress]
+    );
+  });
+});

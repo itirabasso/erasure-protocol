@@ -1,4 +1,6 @@
 const etherlime = require("etherlime-lib");
+const ethers = require("ethers");
+const env = require("@nomiclabs/buidler")
 const { createDeployer } = require("../helpers/setup");
 const {
   hexlify,
@@ -9,16 +11,16 @@ const PostFactoryArtifact = require("../../build/Post_Factory.json");
 const TestPostArtifact = require("../../build/Post.json");
 const ErasurePostsArtifact = require("../../build/Erasure_Posts.json");
 
-const abiEncoder = new ethers.utils.AbiCoder();
+// const abiEncoder = new ethers.utils.AbiCoder();
 
-describe("Post", () => {
+describe.skip("Post", async () => {
   let deployer;
 
   // wallets and addresses
-  const [creatorWallet, otherWallet, operatorWallet] = accounts;
-  const creator = creatorWallet.signer.signingKey.address;
-  const other = otherWallet.signer.signingKey.address;
-  const operator = operatorWallet.signer.signingKey.address;
+  const [creatorSig, otherSig, operatorSig] = await env.ethers.signers();
+  const creator = await creatorSig.getAddress();
+  const other = await otherSig.getAddress();
+  const operator = await operatorSig.getAddress();
 
   const proofHash = createMultihashSha256("proofHash");
   const invalidProofHash = ethers.utils.keccak256(hexlify("invalidProofHash"));

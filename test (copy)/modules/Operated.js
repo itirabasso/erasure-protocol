@@ -1,9 +1,11 @@
 const { createDeployer } = require("../helpers/setup");
+const env = require("@nomiclabs/buidler");
 
-describe("Operated", function() {
-  const [operatorWallet, newOperatorWallet] = accounts;
-  const operator = operatorWallet.signer.signingKey.address;
-  const newOperator = newOperatorWallet.signer.signingKey.address;
+describe.skip("Operated", async function() {
+  
+  const [operatorSigner, newOperatorSigner] = await env.ethers.signers();;
+  const operator = await operatorSigner.getAddress()
+  const newOperator = await newOperatorSigner.getAddress();
 
   let contracts = {
     TestOperated: {
