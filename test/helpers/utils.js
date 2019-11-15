@@ -1,4 +1,5 @@
 const ethers = require("ethers");
+const { utils } = ethers;
 const SpawnArtifact = require("../../build/Spawn.json");
 
 const hexlify = utf8str =>
@@ -136,28 +137,31 @@ const getLatestContractAdressFrom = async (provider, address) => {
 function abiEncodeWithSelector(functionName, abiTypes, abiValues) {
   const abiEncoder = new ethers.utils.AbiCoder();
   const initData = abiEncoder.encode(abiTypes, abiValues);
-  const selector = createSelector(
-    functionName,
-    abiTypes
-  );
+  const selector = createSelector(functionName, abiTypes);
   const encoded = selector + initData.slice(2);
   return encoded;
 }
 
 async function assertEvent(contract, txn, eventName, expectedArgs) {
-  const receipt = await contract.verboseWaitForTransaction(txn);
+  // const receipt = await contract.verboseWaitForTransaction(txn);
+  // const tx = await txn();
+  const receipt = await txn.wait();
 
-  const eventLogs = utils.parseLogs(receipt, contract, eventName);
+  // console.log(receipt, receipt.events, receipt.events[0]);
+  // const eventLogs = utils.parseLogs(receipt, contract, eventName);
 
   // assert that the event with eventName only happened once
-  assert.equal(eventLogs.length, 1);
+  // assert.equal(eventLogs.length, 1);
+  assert.equal(receipt.events.length, 1);
+  // console.log(receipt.events, eventName)
+  const event = receipt.events.find(event => event.event === eventName);
 
-  const [eventArgs] = eventLogs;
+  // const [eventArgs] = event.args;
 
-  assert.equal(eventArgs.length, expectedArgs.length);
+  assert.equal(event.args.length, expectedArgs.length);
 
   expectedArgs.forEach((expectedArg, index) =>
-    assert.equal(eventArgs[index], expectedArg)
+    assert.equal(event.args[index], expectedArg)
   );
 }
 

@@ -1,16 +1,16 @@
-// const ethers = require("ethers");
-// const env = require("@nomiclabs/buidler");
+const ethers = require("ethers");
+const env = require("@nomiclabs/buidler");
 
 // const { setupDeployment, initDeployment } = require("../helpers/setup");
-// const { RATIO_TYPES } = require("../helpers/variables");
+const { RATIO_TYPES } = require("../helpers/variables");
 // const { abiEncodeWithSelector } = require("../helpers/utils");
 
 // const CountdownGriefingArtifact = require("../../build/CountdownGriefing.json");
 // const CountdownGriefingFactoryArtifact = require("../../build/CountdownGriefing_Factory.json");
 // const AgreementsRegistryArtifact = require("../../build/Erasure_Agreements.json");
 // const MockNMRArtifact = require("../../build/MockNMR.json");
-/*
-describe.skip("CountdownGriefing", async function() {
+
+describe("CountdownGriefing", async function() {
   // wallets and addresses
   // const [
   //   operatorWallet,
@@ -914,4 +914,3 @@ describe.skip("CountdownGriefing", async function() {
   });
 });
 
-*/

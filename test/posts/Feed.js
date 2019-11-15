@@ -178,7 +178,7 @@ describe("Feed", async () => {
 
 
       const txn = await testFeed.from(creator).submitHash(hash);
-      assertEvent(testFeed, txn, "HashSubmitted", [hash]);
+      await assertEvent(testFeed, txn, "HashSubmitted", [hash]);
     });
 
     it("should submit hash successfully from operator", async () => {
@@ -187,7 +187,7 @@ describe("Feed", async () => {
       const postID = addPost(hash);
 
       const txn = await testFeed.from(operator).submitHash(hash);
-      assertEvent(testFeed, txn, "HashSubmitted", [hash]);
+      await assertEvent(testFeed, txn, "HashSubmitted", [hash]);
     });
   });
 
@@ -224,6 +224,7 @@ describe("Feed", async () => {
         newFeedMetadata
       );
       await assert.emit(txn, "MetadataSet");
+      // console.log('newFeedMetadata', newFeedMetadata);
       await assert.emitWithArgs(txn, [newFeedMetadata]);
     });
   });
