@@ -11,7 +11,6 @@ usePlugin("buidler-erasure");
 //     console.log(account);
 //   }
 // });
-
 module.exports = {
   networks: {
     buidlerevm: {

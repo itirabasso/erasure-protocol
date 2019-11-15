@@ -1,9 +1,9 @@
-const etherlime = require("etherlime-lib");
-const ethers = require("ethers");
+// const etherlime = require("etherlime-lib");
+// const ethers = require("ethers");
 const env = require("@nomiclabs/buidler");
 
-const nmrAddress = "0x1776e1F26f98b1A5dF9cD347953a26dd3Cb46671";
-const nmrDeployAddress = "0x9608010323ed882a38ede9211d7691102b4f0ba0";
+// const nmrAddress = "0x1776e1F26f98b1A5dF9cD347953a26dd3Cb46671";
+// const nmrDeployAddress = "0x9608010323ed882a38ede9211d7691102b4f0ba0";
 
 async function createDeployer() {
   return await env.ethers.signers()[9];
@@ -31,29 +31,29 @@ async function increaseNonce(signer, increaseTo) {
 }
 
 async function setupDeployment() {
-  const MockNMR_artifact = require("../../build/MockNMR.json");
+  // const MockNMR_artifact = require("../../build/MockNMR.json");
 
-  const deployer = createDeployer();
+  // const deployer = createDeployer();
 
-  await deployer.signer.sendTransaction({
-    to: nmrDeployAddress,
-    value: ethers.utils.parseEther("1")
-  });
+  // await deployer.signer.sendTransaction({
+  //   to: nmrDeployAddress,
+  //   value: ethers.utils.parseEther("1")
+  // });
 
 //   const nmr_deployer = createDeployer();
 //   nmr_deployer.signer = nmr_deployer.provider.getSigner(nmrDeployAddress);
 
 //   await increaseNonce(nmr_deployer.signer, 1);
 
-  const contract = await nmr_deployer.deploy(MockNMR_artifact);
+  // const contract = await nmr_deployer.deploy(MockNMR_artifact);
 
-  assert.equal(contract.contractAddress, nmrAddress);
+  // assert.equal(contract.contractAddress, nmrAddress);
 
-  return [deployer, contract];
+  // return [deployer, contract];
 }
 
 async function initDeployment() {
-  const MockNMR_artifact = require("../../build/MockNMR.json");
+  // const MockNMR_artifact = require("../../build/MockNMR.json");
 //   const deployer = createDeployer();
   const [MockNMR] = await env.erasure.getDeployedContracts(
     env.erasure.deploySetup.nmrToken
