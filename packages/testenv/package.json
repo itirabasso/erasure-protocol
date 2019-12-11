@@ -15,6 +15,10 @@
     "graph-remove-local": "graph remove erasureprotocol/testenv --node http://127.0.0.1:8020"
   },
   "dependencies": {
+    "@nomiclabs/buidler": "file:../../../buidler",
+    "@nomiclabs/buidler-ethers": "file:../../../buidler",
+    "buidler-erasure": "file:../../../buidler-erasure",
+    "@nomiclabs/buidler-ganache": "^1.0.1",
     "@0x/sol-compiler": "^3.1.15",
     "@graphprotocol/graph-cli": "^0.16.0",
     "@graphprotocol/graph-ts": "^0.16.0",

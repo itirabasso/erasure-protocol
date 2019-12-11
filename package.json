@@ -15,6 +15,9 @@
     "format": "yarn prettier -c 'test/**/*.js' -c 'deployment/**/*.js' --config .prettierrc"
   },
   "dependencies": {
+    "@nomiclabs/buidler": "file:../buidler",
+    "@nomiclabs/buidler-ethers": "file:../buidler",
+    "buidler-erasure": "file:../buidler-erasure",
     "@0x/sol-compiler": "^3.1.15",
     "coveralls": "^3.0.5",
     "dotenv": "^8.0.0",
