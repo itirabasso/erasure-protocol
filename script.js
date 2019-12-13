@@ -34,6 +34,10 @@ const main = async () => {
     IPFShash,
   ])
 
+  let tx = await feed.submitHash(proofhash);
+  let receipt = await env.ethers.provider.getTransactionReceipt(tx.hash);
+  console.log('same hash?', proofhash === feed.interface.parseLog(receipt.logs[0]).values.hash)
+
   // // SimpleGriefing
   const griefing = await env.erasure.createInstance('SimpleGriefing', [
     userAddress,
