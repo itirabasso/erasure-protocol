@@ -1,8 +1,8 @@
-usePlugin("../node_modules/buidler-erasure");
+usePlugin("buidler-erasure");
 
-task("compile", async () => {
-  console.log('no compile')
-});
+// task("compile", async () => {
+//   console.log('no compile')
+// });
 
 const customSetup = require('./custom.config')
 // deploySetup = require("./src/deploy.config");
