@@ -24,5 +24,10 @@
     "ganache-cli": "6.5.1",
     "prettier": "^1.19.1",
     "solc": "0.5.13"
+  },
+  "devDependencies": {
+    "@nomiclabs/buidler": "^1.0.1",
+    "buidler-erasure": "^0.0.1",
+    "@nomiclabs/buidler-ethers": "^1.0.1"
   }
 }
