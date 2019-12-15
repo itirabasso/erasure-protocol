@@ -25,7 +25,9 @@ const main = async () => {
 
   await env.run('erasure:erasure-setup')
 
-  const nmr = await env.erasure.getContractInstance('NMR')
+  const nmr = await env.erasure.getContractInstance('MockNMR')
+
+  const b = await env.ethereum.send('eth_getBalance', [await nmr.signer.getAddress(), 'latest'])
 
   // Feed
   const feed = await env.erasure.createInstance('Feed', [
@@ -35,6 +37,7 @@ const main = async () => {
   ])
 
   let tx = await feed.submitHash(proofhash);
+  await tx.wait();
   let receipt = await env.ethers.provider.getTransactionReceipt(tx.hash);
   console.log('same hash?', proofhash === feed.interface.parseLog(receipt.logs[0]).values.hash)
 
