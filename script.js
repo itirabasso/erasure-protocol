@@ -27,16 +27,15 @@ const main = async () => {
 
   const nmr = await env.erasure.getContractInstance('MockNMR')
 
-  const b = await env.ethereum.send('eth_getBalance', [await nmr.signer.getAddress(), 'latest'])
-
   // Feed
   const feed = await env.erasure.createInstance('Feed', [
     userAddress,
     proofhash,
     IPFShash,
   ])
-
-  let tx = await feed.submitHash(proofhash);
+  
+  let tx = await env.run('submit-hash', {feedAddress: feed.address, hash: proofhash})
+  // let tx = await feed.submitHash(proofhash);
   await tx.wait();
   let receipt = await env.ethers.provider.getTransactionReceipt(tx.hash);
   console.log('same hash?', proofhash === feed.interface.parseLog(receipt.logs[0]).values.hash)

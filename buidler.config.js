@@ -1,8 +1,21 @@
 usePlugin('buidler-erasure')
 
-// task("compile", async () => {
-//   console.log('no compile')
-// });
+task('submit-hash')
+  .addParam('feedAddress')
+  .addParam('hash')
+  .setAction(async (args, env, runSuper) => {
+    console.log(args)
+    const { erasure, ethers } = env
+    const { feedAddress, hash } = args
+    const signers = await ethers.signers()
+    const feed = await erasure.getContractInstance(
+      'Feed',
+      feedAddress,
+      signers[0],
+    )
+    return feed.submitHash(hash)
+  })
+
 
 const customSetup = require('./config/custom.config')
 // deploySetup = require("./src/deploy.config");
@@ -37,7 +50,7 @@ module.exports = {
     rinkeby: {
       url: 'https://rinkeby.infura.io/v3/59d7e2fc73234fb89300603dc531c877',
       accounts: [
-        // array of private key 
+        '0x576e924abfc28d1dc8bd0e62a43a7fb426fa940fac014c744994c60d18d7e3bf',
       ],
       erasureSetup: rinkebySetup,
     },
