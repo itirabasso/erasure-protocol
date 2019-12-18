@@ -18,10 +18,8 @@ task('submit-hash')
 
 
 const customSetup = require('./config/custom.config')
-// deploySetup = require("./src/deploy.config");
-// localSetup = require("./src/local.config");
-mainnetSetup = require('./config/mainnet.config')
-rinkebySetup = require('./config/rinkeby.config')
+const mainnetSetup = require('./config/mainnet.config')
+const rinkebySetup = require('./config/rinkeby.config')
 
 module.exports = {
   paths: {
@@ -34,9 +32,7 @@ module.exports = {
     version: '0.5.13',
   },
   networks: {
-    // buidlerevm: {
-    // erasureSetup: customSetup
-    // },
+
     develop: {
       url: 'http://127.0.0.1:8545',
       accounts: {
